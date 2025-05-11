@@ -1,9 +1,28 @@
+import numpy as np
+from scipy.spatial import cKDTree
 import struct
+from multiprocessing import shared_memory
+import config
 
-k_kmh = (2.2*1.02)*1.6
-k_gforce = 1000/(60*60)
+class UDP_Reader:
+    def __init__(self):
+        self.SHM_NAME = config.SHM_NAME
+        self.SHM_BUFFER_SIZE = config.SHM_BUFFER_SIZE
 
-# フォーマットに基づいてアンパックする関数
+        try:
+            self.shm = shared_memory.SharedMemory(name=self.SHM_NAME)
+            print("共有メモリに接続しました")
+        except FileNotFoundError:
+            print("共有メモリが存在しません")
+            exit(1)
+    
+    def read_data(self):
+        raw = bytes(self.shm.buf[:self.SHM_BUFFER_SIZE])
+        data = decode_forza_udp(raw)
+
+        return data
+
+
 def decode_forza_udp(data, buffer_offset=12):
     # Sledフォーマットの解析
     sled_data = struct.unpack(
@@ -108,47 +127,100 @@ def decode_forza_udp(data, buffer_offset=12):
 
     return decoded_data
 
-def decode_forza_speed(data):
-    """
-    Forza MotorsportのUDPデータから速度(km/h)を抽出して返す関数。
 
-    内部で decode_forza_udp を用いて生のデータをデコードし、
-    'Speed' フィールドを km/h に換算して返す。
+def normalize_angle_rad(angle):
+    """角度を [-π, π] に正規化"""
+    return (angle + np.pi) % (2 * np.pi) - np.pi
+
+
+def compute_radius(data):
+    vel = np.array(
+        [data['VelocityX'], data['VelocityY'], data['VelocityZ']])
+    ang = np.array(
+        [data['AngularVelocityX'], data['AngularVelocityY'], data['AngularVelocityZ']])
+
+    v = np.linalg.norm(vel)
+    w = np.linalg.norm(ang)
+    return float('inf') if w == 0 else v / w
+
+
+def find_nearest_road_pixel(road_map, pos_x, pos_z, window_size=50):
+    """
+    自車座標の近傍 (±window_size) の範囲で最も近い道路ピクセルを探索
 
     Args:
-        data (bytes): ForzaからのUDP生データ。
+        road_map (np.ndarray): shape=(H, W), 値は 0 or 1 の2Dマップ
+        pos_x (int): 自車のX座標（列）
+        pos_z (int): 自車のZ座標（行）
+        window_size (int): 探索半径（ピクセル）
 
     Returns:
-        float: 速度(km/h)。
+        tuple: ((x, z), 距離) 最寄りピクセルと距離
     """
-    raw_data = decode_forza_udp(data)
+    H, W = road_map.shape
 
-    speed_km_h = raw_data['Speed'] * k_kmh
+    # 探索範囲を切り出し
+    x0 = max(int(pos_x) - window_size, 0)
+    x1 = min(int(pos_x) + window_size + 1, W)
+    z0 = max(int(pos_z) - window_size, 0)
+    z1 = min(int(pos_z) + window_size + 1, H)
 
-    return speed_km_h 
+    submap = road_map[z0:z1, x0:x1]
 
-def decode_forza_gforce(data):
-    """
-    Forza MotorsportのUDPデータから前後G、左右Gを抽出して返す関数。
+    # 道路ピクセル座標を抽出
+    rel_coords = np.column_stack(np.where(submap == 1))  # (z, x) 相対座標
+    if len(rel_coords) == 0:
+        return None, float('inf')  # 範囲内に道路なし
 
-    内部で decode_forza_udp を用いて生のデータをデコードし、
-    'AccelerationZ' と 'AccelerationX' を用いて前後方向、左右方向の
-    G-forceを計算する。
+    # 相対 → 絶対座標に変換
+    abs_coords = rel_coords + [z0, x0]  # shape=(N, 2)
+
+    # 最近傍探索
+    tree = cKDTree(abs_coords)
+    distance, index = tree.query([pos_z, pos_x])  # 現在地
+
+    nearest = abs_coords[index]
+    return (nearest[1], nearest[0]), distance  # (x, z), 距離
+
+
+def calc_next_point(quadrant_map, pos_x, pos_z, yaw, MAP_OFFSET_X, MAP_OFFSET_Z):
+    # 座標変換（整数ピクセル）
+    ix = int(pos_x + MAP_OFFSET_X)
+    iz = int(pos_z + MAP_OFFSET_Z)
+
+    if not (0 <= iz < quadrant_map.shape[0] and 0 <= ix < quadrant_map.shape[1]):
+        return None
+
+    candidates = quadrant_map[iz, ix]
+    if np.sum(candidates) != 0:
+        candidates = candidates[candidates[:, 0] != 0]
+        dx = candidates[:, 0] - pos_x
+        dz = candidates[:, 1] - pos_z
+
+        angle = np.arctan2(dx, dz) - yaw
+        angle = np.abs(normalize_angle_rad(angle))
+
+        min_angle = np.min(angle)
+        if min_angle < np.pi*(3/4)*2:
+            return candidates[angle == min_angle][0]
+        else:
+            return None
+    else:
+        return None
+
+
+def extract_driving_line_from_d16(d16: np.ndarray) -> np.ndarray:
+    """uint16圧縮マップからdriving_line (7bit) 情報だけを取り出す
 
     Args:
-        data (bytes): ForzaからのUDP生データ。
+        d16 (np.ndarray): shape=(H, W), dtype=uint16 の2次元配列
 
     Returns:
-        tuple: (forward_backward_g, side_to_side_g)
-            - forward_backward_g (float): 前後方向のG値 (G)
-            - side_to_side_g (float): 左右方向のG値 (G)
+        np.ndarray: shape=(H, W), dtype=uint8 の driving_line 抽出結果
     """
-    raw_data = decode_forza_udp(data)
-    
-    # 前後方向GをZ軸から算出 (符号反転などは車両座標系に合わせる)
-    forward_backward_g = -raw_data['AccelerationZ'] * k_kmh * k_gforce / 9.8
+    if d16.dtype != np.uint16:
+        raise ValueError("入力配列は dtype=uint16 である必要があります")
 
-    # 左右方向GをX軸から算出
-    side_to_side_g = -raw_data['AccelerationX'] * k_kmh * k_gforce / 9.8
+    driving_line_map = ((d16 >> 9) & 0x7F).astype(np.uint8)
 
-    return forward_backward_g, side_to_side_g
+    return driving_line_map

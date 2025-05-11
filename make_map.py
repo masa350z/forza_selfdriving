@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from forza_udp_decoder import decode_forza_udp
+from modules import decode_forza_udp
 from multiprocessing import shared_memory
 
 # === 定数定義 ===
@@ -8,11 +8,11 @@ MAP_FILE = "map/road_map.dat"
 DTYPE = np.uint16
 SCALE = 10
 MAP_SIZE_X = 17000 * SCALE
-OFFSET_X = 10000 * SCALE
+MAP_OFFSET_X = 10000 * SCALE
 MAP_SIZE_Z = 10000 * SCALE
-OFFSET_Z = 4300 * SCALE
-SHM_NAME = 'forza_shm'
-BUFFER_SIZE = 1024
+MAP_OFFSET_Z = 4300 * SCALE
+SHM_NAME = 'Global\\forza_shm'
+SHM_BUFFER_SIZE = 1024
 DOWN_SCALE = 100  # 可視化用の圧縮率
 
 
@@ -51,8 +51,8 @@ road_map = np.memmap(MAP_FILE, dtype=DTYPE, mode='r+',
 
 # === マップ更新 ===
 def update_road_map(pos_x, pos_z, compressed_value):
-    ix = int(pos_x * SCALE + OFFSET_X)
-    iz = int(pos_z * SCALE + OFFSET_Z)
+    ix = int(pos_x * SCALE + MAP_OFFSET_X)
+    iz = int(pos_z * SCALE + MAP_OFFSET_Z)
     if 0 <= ix < MAP_SIZE_X and 0 <= iz < MAP_SIZE_Z:
         road_map[iz, ix] = compressed_value
 
@@ -63,7 +63,7 @@ def main_loop():
 
     try:
         while True:
-            raw = bytes(shm.buf[:BUFFER_SIZE])
+            raw = bytes(shm.buf[:SHM_BUFFER_SIZE])
             data = decode_forza_udp(raw)
             driving_line = data['NormalizedDrivingLine']
             pos_x = data['PositionX']
