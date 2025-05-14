@@ -7,9 +7,9 @@ from modules import UDP_Reader, compute_radius, compress_info32, convert_forzapo
 import config
 
 
-output_x4map_path = 'map/palacio_oval_x4.npy'
-output_x1map_path = 'map/palacio_oval_x1.npy'
-output_x1img_path = 'img/palacio_oval_x1.png'
+output_x4map_path = 'map/palacio_simple_x4.npy'
+output_x1map_path = 'map/palacio_simple_x1.npy'
+output_x1img_path = 'img/palacio_simple_x1.png'
 
 MAP_SCALE = config.MAP_SCALE
 map_source_path = f"map/road_map_x{MAP_SCALE}.dat"

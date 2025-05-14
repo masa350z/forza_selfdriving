@@ -30,14 +30,17 @@ class NOA_MODEL(CarModel):
 
     def run(self):
         while True:
-            loop_start = time.time()
+            try:
+                loop_start = time.time()
 
-            self.mono_run()
+                self.mono_run()
 
-            elapsed = time.time() - loop_start
-            sleep_time = self.target_dt - elapsed
-            if sleep_time > 0:
-                time.sleep(sleep_time)
+                elapsed = time.time() - loop_start
+                sleep_time = self.target_dt - elapsed
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
+            except:
+                pass
 
     def mono_run(self):
         self.update()
@@ -74,7 +77,8 @@ class NOA_MODEL(CarModel):
 if __name__ == "__main__":
     MAP_SCALE = config.MAP_SCALE
     ROAD_MAP = np.load(f'map/palacio_oval_x{MAP_SCALE}.npy')
-    QUADRANT_MAP = np.load('map/quadrant_map_10_x1.npy')
+    # QUADRANT_MAP = np.load('map/quadrant_map_10_x1.npy')
+    QUADRANT_MAP = np.load('map/quadrant_map_temp.npy')
 
     ad_car = NOA_MODEL(roadmap=ROAD_MAP, quadrant_map=QUADRANT_MAP)
     ad_car.run()

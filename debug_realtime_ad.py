@@ -14,11 +14,13 @@ MAP_OFFSET_Z = config.MAP_OFFSET_Z
 SHM_NAME = config.SHM_NAME
 
 # === 設定 ===
-MAP_FILE = 'map/palacio_oval_x4.npy'
-QUAD_FILE01 = 'map/quadrant_map_10_x1.npy'
-QUAD_FILE02 = 'map/quadrant_map_30_x1.npy'
-QUAD_FILE03 = 'map/quadrant_map_50_x1.npy'
-QUAD_FILE04 = 'map/quadrant_map_100_x1.npy'
+MAP_FILE = 'map/oval_backup/palacio_oval_x4.npy'
+# MAP_FILE = 'map/palacio_simple_x4.npy'
+QUAD_FILE01 = 'map/oval_backup/quadrant_map_10_x1.npy'
+# QUAD_FILE01 = 'map/quadrant_map_temp.npy'
+QUAD_FILE02 = 'map/oval_backup/quadrant_map_30_x1.npy'
+QUAD_FILE03 = 'map/oval_backup/quadrant_map_50_x1.npy'
+QUAD_FILE04 = 'map/oval_backup/quadrant_map_100_x1.npy'
 
 WINDOW = 200  # 表示範囲 半サイズ
 

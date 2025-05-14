@@ -15,18 +15,8 @@ MAP_SIZE_X = 17000 * SCALE
 OFFSET_X = 10000 * SCALE
 MAP_SIZE_Z = 10000 * SCALE
 OFFSET_Z = 4300 * SCALE
-SHM_NAME = 'forza_shm'
-BUFFER_SIZE = 1024
 DOWN_SCALE = 100  # 可視化用の圧縮率
 
-
-# === 共有メモリ接続 ===
-try:
-    shm = shared_memory.SharedMemory(name=SHM_NAME)
-    print("共有メモリに接続しました")
-except FileNotFoundError:
-    print("共有メモリが存在しません")
-    exit(1)
 
 # === マップ初期化（memmap） ===
 if not os.path.exists(MAP_FILE):
@@ -36,7 +26,6 @@ if not os.path.exists(MAP_FILE):
 
 road_map = np.memmap(MAP_FILE, dtype=DTYPE, mode='r+',
                      shape=(MAP_SIZE_X, MAP_SIZE_Z))
-
 
 xlen, zlen = road_map.shape
 resized_xlen = int(xlen / DOWN_SCALE)
