@@ -1,5 +1,4 @@
 # %%
-from make_quadrant_map import main as make_quadrant_map
 import pickle
 from typing import List, Tuple
 import matplotlib.colors as mcolors
@@ -10,39 +9,15 @@ from math import sqrt
 from itertools import combinations
 import networkx as nx
 from skimage.morphology import skeletonize
-from PIL import Image
 from scipy.ndimage import label, center_of_mass
 import numpy as np
-from modules import extract_driving_line_from_d32, extract_radius_from_d32
+from modules import extract_driving_line_from_d32, extract_radius_from_d32, down_scale_map
 import config
 
 ERASE_R = 4
 DIRS = [(-1, 0, 1.0), (1, 0, 1.0), (0, -1, 1.0), (0, 1, 1.0),
         (-1, -1, sqrt(2)), (-1, 1, sqrt(2)),
         (1, -1, sqrt(2)),  (1, 1, sqrt(2))]
-
-
-def down_scale_map(road_map, down_scale, mode='max'):
-    xlen, zlen = road_map.shape
-    resized_xlen = int(xlen / down_scale)
-    resized_zlen = int(zlen / down_scale)
-
-    new_shape = (
-        resized_xlen, down_scale,
-        resized_zlen, down_scale
-    )
-
-    # reshapeしてから max を取る（axis=(1, 3) は downscale 部分）
-    # road_map = extract_driving_line_from_d32(road_map)
-    resized_img = road_map[:resized_xlen*down_scale, :resized_zlen*down_scale].reshape(new_shape)
-    if mode == 'max':
-        resized_map = resized_img.max(axis=(1, 3))
-    elif mode == 'min':
-        resized_map = resized_img.min(axis=(1, 3))
-    else:
-        resized_map = np.average(resized_img, axis=(1, 3))
-
-    return resized_map
 
 
 def geodesic_length(coord_set: set[tuple[int, int]],
@@ -336,78 +311,49 @@ def make_routed_x1_driveline(x4_map, road_edge_indexes, array_shape=(4250, 2500)
     return x1_driveline
 
 
+def main(road_map, CURV_THR=30, MIN_AREA=10):
+    road_raw = np.memmap(road_map, dtype=np.uint32,
+                         shape=(config.MAP_SIZE_X*config.MAP_SCALE, config.MAP_SIZE_Z*config.MAP_SCALE), mode="r")
+
+    drive_line = extract_driving_line_from_d32(road_raw)   # 0–127
+    radius_map = extract_radius_from_d32(road_raw)         # 0–255
+    radius_map[radius_map == 0] = 255
+
+    drive_line = down_scale_map(drive_line, 16, mode='max')
+    radius_map = down_scale_map(radius_map, 16, mode='min')
+
+    # ★道路マスク（0/1）
+    road_mask = (drive_line > config.ROAD_CENTER_DISTANCE_THRESHOLD).astype(np.uint8)
+
+    # ★高曲率マスク（＝交差点候補）
+    curve_mask = (radius_map < CURV_THR) & road_mask
+
+    labeled, n_cc = label(curve_mask, structure=np.ones((3, 3)))
+    COMS = []              # 各ノード: (array_x, array_z)
+
+    for idx in range(1, n_cc+1):
+        area = np.sum(labeled == idx)
+        if area < MIN_AREA:        # ノイズ除去
+            continue
+        cx, cz = center_of_mass(curve_mask, labeled, idx)
+        COMS.append((int(cx), int(cz)))
+
+    # 画像を [0,1] にしてからスケルトン化
+    skeleton = skeletonize(road_mask.astype(bool)).astype(np.uint8)
+
+    edge_array = extract_edges(skeleton.astype(np.uint8), COMS, save_coords=True)
+
+    G = build_road_graph(COMS, edge_array, scale=1)
+
+    return G, skeleton, edge_array, COMS
+
+
 # %%
-# 32bit → 各レイヤ
-road_raw = np.memmap("map/road_map_x4.dat", dtype=np.uint32,
-                     shape=(config.MAP_SIZE_X*config.MAP_SCALE, config.MAP_SIZE_Z*config.MAP_SCALE), mode="r")
-
-drive_line = extract_driving_line_from_d32(road_raw)   # 0–127
-radius_map = extract_radius_from_d32(road_raw)         # 0–255
-radius_map[radius_map == 0] = 255
-
-drive_line = down_scale_map(drive_line, 16, mode='max')
-radius_map = down_scale_map(radius_map, 16, mode='min')
-# drive_line = drive_line[:int(2400/4), int(2500/4):int(4000/4)]
-# radius_map = radius_map[:int(2400/4), int(2500/4):int(4000/4)]
-
-
-# ★道路マスク（0/1）
-# driving_line が小さすぎる＝路外
-road_mask = (drive_line > config.ROAD_CENTER_DISTANCE_THRESHOLD).astype(np.uint8)
-
-# ★高曲率マスク（＝交差点候補）
-CURV_THR = 30          # 小さいほど曲率大，目視で調整
-curve_mask = (radius_map < CURV_THR) & road_mask
-# %%
-labeled, n_cc = label(curve_mask, structure=np.ones((3, 3)))
-COMS = []              # 各ノード: (array_x, array_z)
-
-MIN_AREA = 10          # 曲率領域が小さすぎるものを除外
-for idx in range(1, n_cc+1):
-    area = np.sum(labeled == idx)
-    if area < MIN_AREA:        # ノイズ除去
-        continue
-    cx, cz = center_of_mass(curve_mask, labeled, idx)
-    COMS.append((int(cx), int(cz)))
-
-# 画像を [0,1] にしてからスケルトン化
-skeleton = skeletonize(road_mask.astype(bool)).astype(np.uint8)
-
-# %%
-edge_array = extract_edges(skeleton.astype(np.uint8), COMS, save_coords=True)
+G, skeleton, edge_array, COMS = main(road_map="map/road_map_x4.dat")
 visualize_edges_colored(skeleton, edge_array, COMS,
                         xlim=(200, 550),
                         ylim=(650, 1000))
-
-
-G = build_road_graph(COMS, edge_array, scale=1)
-
-# --- ルーティング ---
-route_start_node = 1
-route_end_node = 3
-
-nodes, dist = shortest_path_by_distance(G, src=route_start_node,
-                                        dst=route_end_node)
-road_edge_indexes = route_nodes_to_edges(nodes, G)
-print("edge_ids:", road_edge_indexes)
-print("nodes:", nodes, "edges:", road_edge_indexes, "distance[m]:", dist)
-
-x4_map = np.load('map/palacio_simple_x1.npy')
-routed_x1_driveline = make_routed_x1_driveline(x4_map, road_edge_indexes=road_edge_indexes)
-Image.fromarray((routed_x1_driveline[int(800/1):int(2400/1), int(2500/1):int(4000/1)].T)[::-1].astype(np.uint8))
 # %%
 GRAPH_MAP_FILE = 'map/road_graph.pickle'
-
 with open(GRAPH_MAP_FILE, 'wb') as f:
     pickle.dump(G, f)
-
-with open(GRAPH_MAP_FILE, 'rb') as f:
-    G = pickle.load(f)
-
-# %%
-# %%
-a = make_quadrant_map(routed_x1_driveline, radius=10)
-# %%
-np.save(f'map/quadrant_map_temp.npy', a)
-
-# %%

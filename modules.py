@@ -361,13 +361,6 @@ def calc_next_point_differ(quadrant_map, pos_x, pos_z, yaw):
         return None
 
     candidates = quadrant_map[pos_x, pos_z]
-    a = np.sum(candidates > 0)
-    b = np.sum(np.abs(candidates))
-    c = len(candidates)
-    d = candidates[:, 0]
-    e = candidates[:, 1]
-    f = np.sum(candidates, axis=0)
-    g = np.sum(candidates, axis=1)
     if np.sum(candidates > 0) != 0:
         candidates = candidates[np.sum(np.abs(candidates), axis=1) != 0]
         dx = candidates[:, 0]
@@ -441,3 +434,26 @@ def extract_yaw_from_d32(d32: np.ndarray) -> np.ndarray:
     if d32.dtype != np.uint32:
         raise ValueError("dtype は np.uint32 である必要があります")
     return ((d32 >> 24) & 0xFF).astype(np.uint8)
+
+
+def down_scale_map(road_map, down_scale, mode='max'):
+    xlen, zlen = road_map.shape
+    resized_xlen = int(xlen / down_scale)
+    resized_zlen = int(zlen / down_scale)
+
+    new_shape = (
+        resized_xlen, down_scale,
+        resized_zlen, down_scale
+    )
+
+    # reshapeしてから max を取る（axis=(1, 3) は downscale 部分）
+    # road_map = extract_driving_line_from_d32(road_map)
+    resized_img = road_map[:resized_xlen*down_scale, :resized_zlen*down_scale].reshape(new_shape)
+    if mode == 'max':
+        resized_map = resized_img.max(axis=(1, 3))
+    elif mode == 'min':
+        resized_map = resized_img.min(axis=(1, 3))
+    else:
+        resized_map = np.average(resized_img, axis=(1, 3))
+
+    return resized_map

@@ -76,9 +76,10 @@ class NOA_MODEL(CarModel):
 
 if __name__ == "__main__":
     MAP_SCALE = config.MAP_SCALE
-    ROAD_MAP = np.load(f'map/palacio_oval_x{MAP_SCALE}.npy')
-    # QUADRANT_MAP = np.load('map/quadrant_map_10_x1.npy')
-    QUADRANT_MAP = np.load('map/quadrant_map_temp.npy')
+    ROAD_MAP = np.load(f'map/oval_backup/palacio_oval_x{MAP_SCALE}.npy')
+    # ROAD_MAP = np.load(f'map/palacio_simple_x{MAP_SCALE}.npy')
+    QUADRANT_MAP = np.load('map/oval_backup/quadrant_map_10_x1.npy')
+    # QUADRANT_MAP = np.load('map/quadrant_map_temp.npy')
 
     ad_car = NOA_MODEL(roadmap=ROAD_MAP, quadrant_map=QUADRANT_MAP)
     ad_car.run()
