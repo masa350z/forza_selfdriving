@@ -75,13 +75,14 @@ class CarModel:
                                                             int(self.nearest_coord[0]/self.map_scale),
                                                             int(self.nearest_coord[1]/self.map_scale),
                                                             self.yaw)
-            self.target_coord_per4[0] += int(self.nearest_coord[0]/self.map_scale)
-            self.target_coord_per4[1] += int(self.nearest_coord[1]/self.map_scale)
+            if not self.target_coord_per4 is None:
+                self.target_coord_per4[0] += int(self.nearest_coord[0]/self.map_scale)
+                self.target_coord_per4[1] += int(self.nearest_coord[1]/self.map_scale)
 
-            offset = self.compute_offset_vector()
+                offset = self.compute_offset_vector()
 
-            self.offset_target_coordinate = (
-                self.target_coord_per4[0]+offset[0], self.target_coord_per4[1]+offset[1])
+                self.offset_target_coordinate = (
+                    self.target_coord_per4[0]+offset[0], self.target_coord_per4[1]+offset[1])
 
     def calc_yaw_error(self):
         if self.target_coord_per4 is not None:

@@ -1,4 +1,5 @@
 # %%
+from PIL import Image
 import pickle
 from typing import List, Tuple
 import matplotlib.colors as mcolors
@@ -14,7 +15,7 @@ import numpy as np
 from modules import extract_driving_line_from_d32, extract_radius_from_d32, down_scale_map
 import config
 
-ERASE_R = 4
+ERASE_R = 3
 DIRS = [(-1, 0, 1.0), (1, 0, 1.0), (0, -1, 1.0), (0, 1, 1.0),
         (-1, -1, sqrt(2)), (-1, 1, sqrt(2)),
         (1, -1, sqrt(2)),  (1, 1, sqrt(2))]
@@ -349,11 +350,50 @@ def main(road_map, CURV_THR=30, MIN_AREA=10):
 
 
 # %%
-G, skeleton, edge_array, COMS = main(road_map="map/road_map_x4.dat")
+G, skeleton, edge_array, COMS = main(road_map="map/road_map_x4.dat", CURV_THR=30)
 visualize_edges_colored(skeleton, edge_array, COMS,
-                        xlim=(200, 550),
+                        xlim=(200, 650),
                         ylim=(650, 1000))
 # %%
-GRAPH_MAP_FILE = 'map/road_graph.pickle'
+GRAPH_MAP_FILE = 'map/road_graph_.pickle'
 with open(GRAPH_MAP_FILE, 'wb') as f:
     pickle.dump(G, f)
+# %%
+CURV_THR = 40
+MIN_AREA = 10
+road_map = "map/road_map_x4.dat"
+# %%
+road_raw = np.memmap(road_map, dtype=np.uint32,
+                     shape=(config.MAP_SIZE_X*config.MAP_SCALE, config.MAP_SIZE_Z*config.MAP_SCALE), mode="r")
+
+drive_line = extract_driving_line_from_d32(road_raw)   # 0–127
+radius_map = extract_radius_from_d32(road_raw)         # 0–255
+radius_map[radius_map == 0] = 255
+
+drive_line = down_scale_map(drive_line, 16, mode='max')
+radius_map = down_scale_map(radius_map, 16, mode='min')
+# %%
+# ★道路マスク（0/1）
+road_mask = (drive_line > config.ROAD_CENTER_DISTANCE_THRESHOLD).astype(np.uint8)
+
+# ★高曲率マスク（＝交差点候補）
+curve_mask = (radius_map < CURV_THR) & road_mask
+
+labeled, n_cc = label(curve_mask, structure=np.ones((3, 3)))
+COMS = []              # 各ノード: (array_x, array_z)
+
+for idx in range(1, n_cc+1):
+    area = np.sum(labeled == idx)
+    if area < MIN_AREA:        # ノイズ除去
+        continue
+    cx, cz = center_of_mass(curve_mask, labeled, idx)
+    COMS.append((int(cx), int(cz)))
+
+# 画像を [0,1] にしてからスケルトン化
+skeleton = skeletonize(road_mask.astype(bool)).astype(np.uint8)
+# %%
+Image.fromarray(((skeleton*255)[int(800/4):int(2400/4), int(2500/4):int(4000/4)].T)[::-1].astype(np.uint8))
+# %%
+Image.fromarray(((((radius_map < 20) & road_mask)*255)[int(800/4):int(2400/4), int(2500/4):int(4000/4)].T)[::-1].astype(np.uint8))
+
+# %%

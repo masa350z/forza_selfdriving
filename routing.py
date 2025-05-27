@@ -76,17 +76,19 @@ def main(G, route_start_node, route_end_node):
 
 # %%
 if __name__ == '__main__':
-    GRAPH_MAP_FILE = 'map/road_graph.pickle'
+    GRAPH_MAP_FILE = 'map/road_graph_.pickle'
     with open(GRAPH_MAP_FILE, 'rb') as f:
         G = pickle.load(f)
 
     # --- ルーティング ---
     route_start_node = 1
-    route_end_node = 3
+    route_end_node = 7
 
     routed_x1_driveline = main(G, route_start_node, route_end_node)
-    # Image.fromarray((routed_x1_driveline[int(800/1):int(2400/1), int(2500/1):int(4000/1)].T)[::-1].astype(np.uint8))
     routed_quadrant_map = make_quadrant_map(routed_x1_driveline, radius=10)
-    # np.save(f'map/quadrant_map_10_x1.npy', routed_quadrant_map)
+    np.save(f'map/quadrant_map_10_x1.npy', routed_quadrant_map)
 
 # %%
+Image.fromarray((routed_x1_driveline[int(800/1):int(2400/1), int(2500/1):int(4000/1)].T)[::-1].astype(np.uint8))
+# %%
+np.save(f'map/quadrant_map_10_x1.npy', routed_quadrant_map)

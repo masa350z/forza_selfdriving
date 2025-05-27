@@ -71,7 +71,7 @@ def make_scaled_map(npy_map, scale, output_npy_path, output_png_path=None):
     resized_map = down_scale_map(npy_map, scale)
     np.save(output_npy_path, resized_map)
     if output_png_path is not None:
-        Image.fromarray(resized_map.T[::-1].astype(np.uint8)).save(output_png_path)
+        Image.fromarray((resized_map.T[::-1]*2).astype(np.uint8)).save(output_png_path)
 
 
 def make_map(road_map):

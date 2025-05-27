@@ -12,14 +12,14 @@ MAP_OFFSET_Z = config.MAP_OFFSET_Z
 SHM_NAME = config.SHM_NAME
 
 # === 設定 ===
-MAP_FILE_X4 = 'map/oval_backup/palacio_oval_x4.npy'
-MAP_FILE_X1 = 'map/oval_backup/palacio_oval_x1.npy'
+MAP_FILE_X4 = 'map/palacio_simple_x4.npy'
+MAP_FILE_X1 = 'map/palacio_simple_x1.npy'
 
-QUAD_FILE01 = 'map/oval_backup/quadrant_map_10_x1.npy'
-# QUAD_FILE01 = 'map/quadrant_map_temp.npy'
-QUAD_FILE02 = 'map/oval_backup/quadrant_map_30_x1.npy'
-QUAD_FILE03 = 'map/oval_backup/quadrant_map_50_x1.npy'
-QUAD_FILE04 = 'map/oval_backup/quadrant_map_100_x1.npy'
+# QUAD_FILE01 = 'map/oval_backup/quadrant_map_10_x1.npy'
+QUAD_FILE01 = 'map/quadrant_map_temp.npy'
+# QUAD_FILE02 = 'map/oval_backup/quadrant_map_30_x1.npy'
+# QUAD_FILE03 = 'map/oval_backup/quadrant_map_50_x1.npy'
+# QUAD_FILE04 = 'map/oval_backup/quadrant_map_100_x1.npy'
 
 WINDOW = 200  # 表示範囲 半サイズ
 
@@ -27,9 +27,9 @@ WINDOW = 200  # 表示範囲 半サイズ
 road_map_x4 = np.load(MAP_FILE_X4)
 road_map_x1 = np.load(MAP_FILE_X1)
 quadrant_map01 = np.load(QUAD_FILE01)
-quadrant_map02 = np.load(QUAD_FILE02)
-quadrant_map03 = np.load(QUAD_FILE03)
-quadrant_map04 = np.load(QUAD_FILE04)
+# quadrant_map02 = np.load(QUAD_FILE02)
+# quadrant_map03 = np.load(QUAD_FILE03)
+# quadrant_map04 = np.load(QUAD_FILE04)
 
 
 reader = UDP_Reader()
@@ -118,9 +118,10 @@ def update_x4(array_coord_x, array_coord_z, yaw):
         nearest_dot1.set_data([nearest_pixel_x - x0], [nearest_pixel_z - z0])
 
         for quadrant_map, g0 in [(quadrant_map01, g01_1),
-                                 (quadrant_map02, g02_1),
-                                 (quadrant_map03, g03_1),
-                                 (quadrant_map04, g04_1)]:
+                                 #  (quadrant_map02, g02_1),
+                                 #  (quadrant_map03, g03_1),
+                                 #  (quadrant_map04, g04_1),
+                                 ]:
 
             set_circle_x4(quadrant_map, g0,
                           nearest_pixel_x,
@@ -148,9 +149,10 @@ def update_x1(array_coord_x, array_coord_z, yaw):
         nearest_dot2.set_data([nearest_pixel_x - x0], [nearest_pixel_z - z0])
 
         for quadrant_map, g0 in [(quadrant_map01, g01_2),
-                                 (quadrant_map02, g02_2),
-                                 (quadrant_map03, g03_2),
-                                 (quadrant_map04, g04_2)]:
+                                 #  (quadrant_map02, g02_2),
+                                 #  (quadrant_map03, g03_2),
+                                 #  (quadrant_map04, g04_2),
+                                 ]:
 
             set_circle_x1(quadrant_map, g0,
                           nearest_pixel_x,

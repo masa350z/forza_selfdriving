@@ -13,7 +13,7 @@ class FULLTHROTTLE_MODEL(CarModel):
         super().__init__(roadmap, quadrant_map, right_hand_traffic)
 
         self.controller = vController()  # 仮想コントローラ初期化
-        target_speed_mps = 300/1.6 * config.MPH_TO_MPS
+        target_speed_mps = 400/1.6 * config.MPH_TO_MPS
 
         self.throttle_pid = PID(0.05, 0.05, 0.05, setpoint=target_speed_mps)
         self.throttle_pid.output_limits = (0, 1)

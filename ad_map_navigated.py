@@ -3,14 +3,18 @@ from simple_pid import PID
 import numpy as np
 import time
 
-from modules import CarModel
+# from modules import CarModel
+from noa import CarModel
 import config
 
 
 class NOA_MODEL(CarModel):
-    def __init__(self, roadmap, quadrant_map, roadcenter_distance=10, max_throttle=0.6,
+    # def __init__(self, roadmap, quadrant_map, roadcenter_distance=10, max_throttle=0.6,
+    def __init__(self, roadmap, intersection_mask, roadcenter_distance=10, max_throttle=0.6,
                  right_hand_traffic=True, running_herz=60):
-        super().__init__(roadmap, quadrant_map, right_hand_traffic)
+        # super().__init__(roadmap, quadrant_map, right_hand_traffic)
+        super().__init__(roadmap, intersection_mask, right_hand_traffic,
+                         search_radius=30, search_retries=10, search_retry_step=10)
 
         self.controller = vController()  # 仮想コントローラ初期化
         target_speed_mps = config.TARGET_SPEED_MPH * config.MPH_TO_MPS
@@ -30,17 +34,17 @@ class NOA_MODEL(CarModel):
 
     def run(self):
         while True:
-            try:
-                loop_start = time.time()
+            # try:
+            loop_start = time.time()
 
-                self.mono_run()
+            self.mono_run()
 
-                elapsed = time.time() - loop_start
-                sleep_time = self.target_dt - elapsed
-                if sleep_time > 0:
-                    time.sleep(sleep_time)
-            except:
-                pass
+            elapsed = time.time() - loop_start
+            sleep_time = self.target_dt - elapsed
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+            # except Exception as e:
+            #     print(e)
 
     def mono_run(self):
         self.update()
@@ -52,10 +56,13 @@ class NOA_MODEL(CarModel):
             throttle = throttle if self.radius > self.radius_thresh else 0
 
             steer00 = self.steer_pid(yaw_error)
-            steer01 = self.steer01_pid(lateral_error)
+        
 
-            steer = steer00+steer01
-            # steer = steer00
+            if self.is_intersection:
+                steer = steer00
+            else:
+                steer01 = self.steer01_pid(lateral_error)
+                steer = steer00+steer01
 
             steer = steer if steer < 1 else 1
             steer = steer if steer > -1 else -1
@@ -76,10 +83,19 @@ class NOA_MODEL(CarModel):
 
 if __name__ == "__main__":
     MAP_SCALE = config.MAP_SCALE
-    ROAD_MAP = np.load(f'map/oval_backup/palacio_oval_x{MAP_SCALE}.npy')
-    # ROAD_MAP = np.load(f'map/palacio_simple_x{MAP_SCALE}.npy')
-    QUADRANT_MAP = np.load('map/oval_backup/quadrant_map_10_x1.npy')
-    # QUADRANT_MAP = np.load('map/quadrant_map_temp.npy')
+    # ROAD_MAP = np.load(f'map/oval_backup/palacio_oval_x{MAP_SCALE}.npy')
+    ROAD_MAP = np.load(f'map/palacio_simple_x{MAP_SCALE}.npy')
+    # QUADRANT_MAP = np.load('map/oval_backup/quadrant_map_10_x1.npy')
+    QUADRANT_MAP = np.load('map/quadrant_map_temp.npy')
+    ROUTE_DIST_X1 = np.load('tmp/routed_road.npy')
 
-    ad_car = NOA_MODEL(roadmap=ROAD_MAP, quadrant_map=QUADRANT_MAP)
-    ad_car.run()
+    INTERSECTION_MASK = np.load('tmp/intersection_mask.npy')
+
+    # ad_car = NOA_MODEL(roadmap=ROAD_MAP, quadrant_map=QUADRANT_MAP)
+    ad_car = NOA_MODEL(roadmap=ROAD_MAP, intersection_mask=INTERSECTION_MASK)
+    ad_car.update_route_map(ROUTE_DIST_X1)
+
+    try:
+        ad_car.run()
+    except KeyboardInterrupt:
+        print("\n[終了] Ctrl+C により終了します")
