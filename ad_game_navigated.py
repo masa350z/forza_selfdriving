@@ -1,6 +1,5 @@
 from pyxinput import vController
 from simple_pid import PID
-import numpy as np
 import time
 
 from modules import CarModel
@@ -8,9 +7,9 @@ import config
 
 
 class GAME_NNAVIGATED_MODEL(CarModel):
-    def __init__(self, roadmap, quadrant_map, roadcenter_distance=0, max_throttle=0.6,
+    def __init__(self, roadcenter_distance=0, max_throttle=0.6,
                  right_hand_traffic=True, running_herz=60):
-        super().__init__(roadmap, quadrant_map, right_hand_traffic)
+        super().__init__(right_hand_traffic=right_hand_traffic)
 
         self.controller = vController()  # 仮想コントローラ初期化
         target_speed_mps = config.TARGET_SPEED_MPH * config.MPH_TO_MPS
@@ -64,9 +63,5 @@ class GAME_NNAVIGATED_MODEL(CarModel):
 
 
 if __name__ == "__main__":
-    MAP_SCALE = config.MAP_SCALE
-    ROAD_MAP = np.load(f'map/palacio_oval_x{MAP_SCALE}.npy')
-    QUADRANT_MAP = np.load('map/quadrant_map_10_x1.npy')
-
-    ad_car = GAME_NNAVIGATED_MODEL(roadmap=ROAD_MAP, quadrant_map=QUADRANT_MAP, roadcenter_distance=0)
+    ad_car = GAME_NNAVIGATED_MODEL(roadcenter_distance=0)
     ad_car.run()

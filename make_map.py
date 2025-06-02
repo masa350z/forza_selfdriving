@@ -99,7 +99,7 @@ def make_map(road_map):
                 print('保存完了')
                 input_init = True
 
-        elif speed >= 15:
+        elif speed >= 1:
             pos_y = int(data['PositionY'] / 4)
             driving_line = 127 - int(abs(driving_line))
             is_dirt = int(data['SurfaceRumbleFrontLeft'] != 0)
