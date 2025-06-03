@@ -19,17 +19,23 @@ from heapq import heappush, heappop
 from itertools import combinations
 from math import sqrt
 
+import pathlib
+import sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT))
+
 import config
 from modules import (
     down_scale_map, extract_driving_line_from_d32
 )
 
 # ---------- パス設定 ----------
-MASK_PNG = "img/map_mask.png"                       # 透明+白+赤 の PNG
-RAW_DAT = "map/road_map_x4.dat"            # 32-bit RAW (read-only)
-EDGE_DIR = "map/road_edges"          # エッジ座標保存ディレクトリ
-LABEL_IMG = "img/manual_edges_labeled.png"   # エッジIDラベル付き画像
-GRAPH_MAP_DIR = 'map/graphmap/'
+MASK_PNG = "../img/map_mask.png"                       # 透明+白+赤 の PNG
+RAW_DAT = "../map/road_map_x4.dat"            # 32-bit RAW (read-only)
+EDGE_DIR = "../map/road_edges"          # エッジ座標保存ディレクトリ
+LABEL_IMG = "../img/manual_edges_labeled.png"   # エッジIDラベル付き画像
+GRAPH_MAP_DIR = '../map/graph../map/'
 # ---------- しきい値 ----------
 RED_THR = (200, 60, 60)
 WHITE_THR = (200, 200, 200)
@@ -228,7 +234,7 @@ def save_graph_map(G, nodes, edges, skeleton, masked_map, output_dir=GRAPH_MAP_D
     skeleton_path = os.path.join(output_dir + 'skeleton.pickle')
     masked_map_path = os.path.join(output_dir + 'masked_map.pickle')
 
-    save_skeleton_image(skeleton, "img/skeleton_eqscale.png")
+    save_skeleton_image(skeleton, "../img/skeleton_eqscale.png")
 
     with open(graph_path, "wb") as f:
         pickle.dump(G, f)
@@ -296,7 +302,7 @@ def load_mask(png_path: str) -> tuple[np.ndarray, List[Tuple[int, int, int]]]:
 
     red_flip = red[::-1]
 
-    np.save('map/intersection_mask.npy', red_flip.T)
+    np.save('../map/intersection_mask.npy', red_flip.T)
 
     lbl, n_lbl = label(red_flip, connectivity=2, return_num=True)
     nodes: List[Tuple[int, int, int]] = []
@@ -595,7 +601,7 @@ def concat_driveline(x1_map: np.ndarray,
 
 
 def ret_routed_drivingline(drivingline_x1, masked_drivingline_x1,
-                           MG, start_state, goal_state, output_path='tmp/routed_road.npy'):
+                           MG, start_state, goal_state, output_path='../tmp/routed_road.npy'):
     edge_ids = extract_routed_edges(MG, start_state, goal_state)
     routed_drivingline = concat_driveline(masked_drivingline_x1, edge_ids, EDGE_DIR)
 
@@ -828,4 +834,4 @@ if __name__ == "__main__":
     # goal_state = (667, 177)
 
     # routed_drivingline = ret_routed_drivingline(drivingline_x1, masked_drivingline_x1,
-    #                                             MG, start_state, goal_state, output_path='tmp/routed_road.npy')
+    #                                             MG, start_state, goal_state, output_path='../tmp/routed_road.npy')

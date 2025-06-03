@@ -1,14 +1,20 @@
 from PIL import Image
 import numpy as np
 import os
-from multiprocessing import shared_memory
 from tqdm import tqdm
+
+import pathlib
+import sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT))
+
 from modules import extract_driving_line_from_d32
 
 
 # === 定数定義 ===
-MAP_FILE = "map/road_map_x4.dat"
-OUTPUT_FILE = "img/road_map_view.png"
+MAP_FILE = "../map/road_map_x4.dat"
+OUTPUT_FILE = "../img/road_map_view.png"
 DTYPE = np.uint32
 SCALE = 4
 MAP_SIZE_X = 17000 * SCALE

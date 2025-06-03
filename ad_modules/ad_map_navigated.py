@@ -1,7 +1,12 @@
 from pyxinput import vController
 from simple_pid import PID
 import numpy as np
+import pathlib
+import sys
 import time
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT))
 
 from modules import CarModel, find_nearest_road_pixel, convert_forzaposition_to_arraycoord
 import config
@@ -126,8 +131,8 @@ class NOA_MODEL(CarModel):
 
 if __name__ == "__main__":
     MAP_SCALE = config.MAP_SCALE
-    ROAD_MAP = np.load(f'map/drivingline_map_x{MAP_SCALE}.npy')
-    ROUTE_DIST_X1 = np.load('tmp/routed_road.npy')
+    ROAD_MAP = np.load(f'../map/drivingline_map_x{MAP_SCALE}.npy')
+    ROUTE_DIST_X1 = np.load('../tmp/routed_road.npy')
 
     ad_car = NOA_MODEL(roadmap=ROAD_MAP, roadcenter_distance_x4=8, running_herz=60)
     ad_car.update_route_map(ROUTE_DIST_X1)

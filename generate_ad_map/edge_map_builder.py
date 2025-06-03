@@ -15,12 +15,17 @@ from pathlib import Path
 import numpy as np
 from scipy.ndimage import distance_transform_edt
 
+import sys
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT))
+
 import config
 from make_graph_map import load_graph_map  # nodes, edges, skeleton 取得用
 
-EDGE_DIR = Path("map/road_edges")
-OUT_X1 = Path("map/nearest_edge_map_x1.npy")
-OUT_X4 = Path(f"map/nearest_edge_map_x{config.MAP_SCALE}.npy")
+EDGE_DIR = Path("../map/road_edges")
+OUT_X1 = Path("../map/nearest_edge_map_x1.npy")
+OUT_X4 = Path(f"../map/nearest_edge_map_x{config.MAP_SCALE}.npy")
 
 
 def _build_edge_id_surface(edges: np.ndarray) -> np.ndarray:

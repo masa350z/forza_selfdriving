@@ -1,6 +1,11 @@
 from pyxinput import vController
 from simple_pid import PID
+import pathlib
+import sys
 import time
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT))
 
 from modules import CarModel
 import config

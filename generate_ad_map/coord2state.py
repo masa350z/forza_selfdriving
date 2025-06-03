@@ -10,6 +10,12 @@ from __future__ import annotations
 import numpy as np
 from typing import Tuple
 
+import pathlib
+import sys
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT))
+
 import config
 from make_graph_map import load_graph_map, nearest_node
 

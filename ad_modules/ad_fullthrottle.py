@@ -1,6 +1,11 @@
 from pyxinput import vController
 from simple_pid import PID
+import pathlib
+import sys
 import time
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT))
 
 from modules import CarModel
 import config
@@ -11,12 +16,12 @@ class FULLTHROTTLE_MODEL(CarModel):
         super().__init__(right_hand_traffic=right_hand_traffic)
 
         self.controller = vController()  # 仮想コントローラ初期化
-        target_speed_mps = 400/1.6 * config.MPH_TO_MPS
+        target_speed_mps = 400 / 1.6 * config.MPH_TO_MPS
 
         self.throttle_pid = PID(0.05, 0.05, 0.05, setpoint=target_speed_mps)
         self.throttle_pid.output_limits = (0, 1)
 
-        self.target_dt = 1/running_herz
+        self.target_dt = 1 / running_herz
         self.input_init = False
 
     def run(self):
@@ -38,7 +43,7 @@ class FULLTHROTTLE_MODEL(CarModel):
             c = self.data['TireSlipRatioRearLeft']
             d = self.data['TireSlipRatioRearRight']
 
-            slip = (a+b+c+d)/4
+            slip = (a + b + c + d) / 4
 
             throttle = self.throttle_pid(self.speed_mps)
             throttle = throttle if self.radius > 50 else 0

@@ -3,16 +3,21 @@ import numpy as np
 import sys
 import os
 
+import pathlib
+
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+sys.path.append(str(ROOT))
+
 from modules import UDP_Reader, compute_radius, compress_info32, convert_forzaposition_to_arraycoord, extract_driving_line_from_d32
 import config
 
 
-output_x4map_path = 'map/drivingline_map_x4.npy'
-output_x1map_path = 'map/drivingline_map_x1.npy'
-output_x1img_path = 'img/drivingline_map_x1.png'
+output_x4map_path = '../map/drivingline_map_x4.npy'
+output_x1map_path = '../map/drivingline_map_x1.npy'
+output_x1img_path = '../img/drivingline_map_x1.png'
 
 MAP_SCALE = config.MAP_SCALE
-map_source_path = f"map/road_map_x{MAP_SCALE}.dat"
+map_source_path = f"../map/road_map_x{MAP_SCALE}.dat"
 
 scaled_mapsize_x = config.MAP_SIZE_X*MAP_SCALE
 scaled_mapsize_z = config.MAP_SIZE_Z*MAP_SCALE
