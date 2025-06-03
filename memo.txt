@@ -1,0 +1,5 @@
+windowsからWSL側のIPアドレスを取得
+ip addr | grep eth0
+
+WSL側からWindowsのIPアドレスを取得
+ip route | grep 'default via' | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'

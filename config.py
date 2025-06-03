@@ -16,4 +16,4 @@ TARGET_SPEED_MPH = 30
 RADIUS_THRESH = 35
 
 CONTROL_PORT = 6000           # WSL or Linux-machine →Windows で制御信号を流す UDP ポート
-WINDOWS_IP = "172.23.58.1"           # WSL or Linux-machine →Windows で制御信号を流す IPアドレス
+WINDOWS_IP = "172.23.48.1"           # WSL or Linux-machine →Windows で制御信号を流す IPアドレス

@@ -4,6 +4,7 @@ import socket
 import struct
 from pyxinput import vController
 import config
+import time
 
 PORT = config.CONTROL_PORT
 
@@ -24,4 +25,6 @@ try:
         vc.set_value("AxisLx", steer)
         vc.set_value("TriggerR", throttle)
 except KeyboardInterrupt:
-    pass
+    vc.set_value("AxisLx", 0)
+    vc.set_value("TriggerR", 0)
+    time.sleep(1)
