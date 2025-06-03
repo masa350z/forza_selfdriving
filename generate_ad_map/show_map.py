@@ -24,7 +24,7 @@ OFFSET_Z = 4300 * SCALE
 DOWN_SCALE = 100  # 可視化用の圧縮率
 
 
-# === マップ初期化（memmap） ===
+# === マップ初期化(memmap) ===
 if not os.path.exists(MAP_FILE):
     fp = np.memmap(MAP_FILE, dtype=DTYPE, mode='w+',
                    shape=(MAP_SIZE_X, MAP_SIZE_Z))

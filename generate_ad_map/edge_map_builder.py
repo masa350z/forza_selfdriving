@@ -1,7 +1,7 @@
 """各ピクセルに「最近接 edge_id」を割り当てた最近接エッジマップを作成する。
 
        * build_nearest_edge_map_x1(): 等倍 (17000x10000) を生成
-       * build_nearest_edge_map_x4(): x4 拡大版を生成（自動運転用）
+       * build_nearest_edge_map_x4(): x4 拡大版を生成(自動運転用)
 
 実行方法
 --------

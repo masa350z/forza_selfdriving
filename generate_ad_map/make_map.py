@@ -24,7 +24,7 @@ scaled_mapsize_z = config.MAP_SIZE_Z*MAP_SCALE
 
 
 def init_roadmap_memmap(map_source_path, map_dtype=np.uint32):
-    # === マップ初期化（memmap） ===
+    # === マップ初期化(memmap) ===
     if not os.path.exists(map_source_path):
         fp = np.memmap(map_source_path, dtype=map_dtype, mode='w+',
                        shape=(scaled_mapsize_x, scaled_mapsize_z))
@@ -64,7 +64,7 @@ def down_scale_map(road_map, down_scale):
         resized_zlen, down_scale
     )
 
-    # reshapeしてから max を取る（axis=(1, 3) は downscale 部分）
+    # reshapeしてから max を取る(axis=(1, 3) は downscale 部分)
     road_map = extract_driving_line_from_d32(road_map)
     resized_img = road_map[:resized_xlen*down_scale, :resized_zlen*down_scale].reshape(new_shape)
     resized_map = resized_img.max(axis=(1, 3))

@@ -3,6 +3,7 @@ from scipy.spatial import cKDTree
 import numpy as np
 import struct
 import config
+import socket
 
 
 def circle_offsets_by_quadrant(r: int):
@@ -318,6 +319,34 @@ class CarModel:
             return None
 
 
+class UDPControllerClient:
+    """pyxinput と互換インターフェース(set_value)を持つ送信専用コントローラ"""
+
+    def __init__(self,
+                 ip: str = config.WINDOWS_IP,      # WSL から見た Windows ホスト IP
+                 port: int = config.CONTROL_PORT) -> None:
+        self.addr = (ip, port)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self._state = {"AxisLx": 0.0, "TriggerR": 0.0}
+
+    # ------------------------------------------------------------
+    # CarModel 側が呼ぶのは set_value だけなので互換で実装
+    #   key  : 'AxisLx'  or 'TriggerR'
+    #   value: float     [-1‥1] / [0‥1]
+    # ------------------------------------------------------------
+    def set_value(self, key: str, value: float) -> None:
+        if key not in self._state:
+            return                      # 未対応キーは無視
+        self._state[key] = float(value)
+
+        # ★ CarModel は毎フレーム「steer→throttle」の順で呼ぶので
+        #   TriggerR 受信時に 2 値まとめて送信する
+        if key == "TriggerR":
+            payload = struct.pack("ff",
+                                  self._state["AxisLx"],
+                                  self._state["TriggerR"])
+            self.sock.sendto(payload, self.addr)
+
 def decode_forza_udp(data, buffer_offset=12):
     # Sledフォーマットの解析
     sled_data = struct.unpack(
@@ -560,7 +589,7 @@ def down_scale_map(road_map, down_scale, mode='max'):
         resized_zlen, down_scale
     )
 
-    # reshapeしてから max を取る（axis=(1, 3) は downscale 部分）
+    # reshapeしてから max を取る(axis=(1, 3) は downscale 部分)
     # road_map = extract_driving_line_from_d32(road_map)
     resized_img = road_map[:resized_xlen*down_scale, :resized_zlen*down_scale].reshape(new_shape)
     if mode == 'max':

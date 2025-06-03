@@ -25,7 +25,7 @@ import networkx as nx
 from coord2state import coord_to_state
 
 # ──────────────────────────────────────────────────────────────
-# データをメモリにロード（1度だけ）
+# データをメモリにロード(1度だけ)
 # ──────────────────────────────────────────────────────────────
 ROOT = pathlib.Path(__file__).resolve().parents[1] / "data" / "graphmap"
 with open(ROOT / "movement_graph.pickle", "rb") as f:

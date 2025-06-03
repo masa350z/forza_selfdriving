@@ -1,4 +1,4 @@
-from pyxinput import vController
+# from pyxinput import vController
 from simple_pid import PID
 import numpy as np
 import pathlib
@@ -8,7 +8,7 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT))
 
-from modules import CarModel, find_nearest_road_pixel, convert_forzaposition_to_arraycoord
+from modules import CarModel, UDPControllerClient, find_nearest_road_pixel, convert_forzaposition_to_arraycoord
 import config
 
 
@@ -53,7 +53,8 @@ class NOA_MODEL(CarModel):
 
         self.road_map_x4 = roadmap
 
-        self.controller = vController()  # 仮想コントローラ初期化
+        # self.controller = vController()  # 仮想コントローラ初期化
+        self.controller = UDPControllerClient()
         target_speed_mps = config.TARGET_SPEED_MPH * config.MPH_TO_MPS
         self.radius_thresh = config.RADIUS_THRESH
 

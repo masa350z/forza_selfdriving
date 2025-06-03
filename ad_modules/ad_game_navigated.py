@@ -1,4 +1,4 @@
-from pyxinput import vController
+# from pyxinput import vController
 from simple_pid import PID
 import pathlib
 import sys
@@ -7,7 +7,7 @@ import time
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT))
 
-from modules import CarModel
+from modules import CarModel, UDPControllerClient
 import config
 
 
@@ -16,7 +16,8 @@ class GAME_NNAVIGATED_MODEL(CarModel):
                  right_hand_traffic=True, running_herz=60):
         super().__init__(right_hand_traffic=right_hand_traffic)
 
-        self.controller = vController()  # 仮想コントローラ初期化
+        # self.controller = vController()  # 仮想コントローラ初期化
+        self.controller = UDPControllerClient()
         target_speed_mps = config.TARGET_SPEED_MPH * config.MPH_TO_MPS
         self.radius_thresh = config.RADIUS_THRESH
 

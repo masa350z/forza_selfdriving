@@ -12,7 +12,7 @@ import numpy as np
 
 import config
 
-# ---------- データロード（起動時 1 度だけ） ---------------------------
+# ---------- データロード(起動時 1 度だけ) ---------------------------
 ROOT = pathlib.Path(__file__).resolve().parents[1] / "data"
 with open(ROOT / "graphmap" / "node.pickle", "rb") as f:
     _NODES: List[Tuple[int, int, int]] = pickle.load(f)

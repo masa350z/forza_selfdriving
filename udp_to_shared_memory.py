@@ -8,7 +8,7 @@ SHM_NAME = config.SHM_NAME
 SHM_BUFFER_SIZE = config.SHM_BUFFER_SIZE
 FORZA_UDP_PORT = config.FORZA_UDP_PORT
 
-# 共有メモリ作成（既に存在する場合は再作成）
+# 共有メモリ作成(既に存在する場合は再作成)
 try:
     shm = shared_memory.SharedMemory(name=SHM_NAME, create=True, size=SHM_BUFFER_SIZE)
 except FileExistsError:

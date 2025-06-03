@@ -64,7 +64,7 @@ def visualize_edges(skeleton: np.ndarray,
                     short_side_px: int = 10000,
                     dpi: int = 100) -> None:
     """
-    skeleton とノード/エッジ ID を可視化（任意範囲＋短辺=10 000px 拡大保存）
+    skeleton とノード/エッジ ID を可視化(任意範囲＋短辺=10 000px 拡大保存)
 
     Parameters
     ----------
@@ -328,7 +328,7 @@ def drivingline_mask_from_raw(raw_path: str, white_mask: np.ndarray) -> np.ndarr
 
 
 # ======================================================================
-# 2. エッジ（道路）、ノード（交差点）抽出
+# 2. エッジ(道路)、ノード(交差点)抽出
 # ======================================================================
 def erase_nodes(arr: np.ndarray,
                 nodes: List[Tuple[int, int, int]],
@@ -507,7 +507,7 @@ def build_movement_graph(
     junction_cost : float | dict[int, float] | None, optional
         ・float  : すべての交差点に同じコストを課す
         ・dict   : {junction_id: cost, …} で個別設定
-        ・None   : 追加コストなし（従来互換）
+        ・None   : 追加コストなし(従来互換)
     """
     # ------------------------------------------------------------------
     # 0) junction_cost をアクセスしやすい dict にそろえる
@@ -553,7 +553,7 @@ def build_movement_graph(
                     continue
 
                 dst = (eid_out, n)
-                # ★ weight を j_cost にする（距離 0 + 交差点コスト）
+                # ★ weight を j_cost にする(距離 0 + 交差点コスト)
                 M.add_edge(src, dst,
                            weight=j_cost,
                            turn=True)

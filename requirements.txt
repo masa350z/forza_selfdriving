@@ -1,0 +1,4 @@
+PYXInput
+numpy
+scipy
+simple-pid
